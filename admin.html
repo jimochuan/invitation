@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💌 回应列表</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:linear-gradient(135deg,#fce4ec,#fdf6f0,#f3e5f5);min-height:100vh;padding:20px}
+.wrap{max-width:500px;margin:0 auto}
+h1{text-align:center;color:#c97d93;margin:16px 0;letter-spacing:2px}
+.info{text-align:center;color:#999;font-size:13px;margin-bottom:16px}
+.card{background:#fff;border-radius:16px;padding:20px;margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.card .no{font-size:12px;color:#999;margin-bottom:6px}
+.card .detail{font-size:15px;line-height:2;color:#4a3548}
+.card .msg{margin-top:10px;padding:12px 16px;background:#fef5f7;border-radius:12px;color:#7a6578;font-size:14px;line-height:1.6}
+.empty{text-align:center;color:#999;padding:40px;font-size:14px}
+.refresh{text-align:center;margin:16px 0}
+.refresh button{padding:10px 28px;border:none;border-radius:50px;background:linear-gradient(135deg,#e8a0b4,#c97d93);color:#fff;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:1px;font-family:inherit}
+.loading{text-align:center;color:#999;padding:40px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>💌 收到的回应</h1>
+  <div class="refresh"><button onclick="load()">🔄 刷新</button></div>
+  <div id="list"><div class="loading">加载中...</div></div>
+</div>
+<script>
+var supabase = supabase.createClient(
+  'https://iqawreswebkaurbswkpf.supabase.co',
+  'sb_publishable_s3ZAvkd9G6xSJDhFhlFS-g_2DWMsI1O'
+);
+
+function timeAgo(d){
+  var now = new Date(); var t = new Date(d); var diff = Math.floor((now - t) / 1000);
+  if (diff < 60) return '刚刚';
+  if (diff < 3600) return Math.floor(diff/60) + ' 分钟前';
+  if (diff < 86400) return Math.floor(diff/3600) + ' 小时前';
+  return Math.floor(diff/86400) + ' 天前';
+}
+
+function load(){
+  document.getElementById('list').innerHTML = '<div class="loading">加载中...</div>';
+  supabase.from('responses').select('*').order('created_at', {ascending: false}).then(function(r){
+    var el = document.getElementById('list');
+    if (r.error) { el.innerHTML = '<div class="empty">加载失败：' + r.error.message + '</div>'; return; }
+    if (!r.data || r.data.length === 0) {
+      el.innerHTML = '<div class="empty">还没有收到回应 💌<br><br>把邀请链接发给对方吧~</div>';
+      return;
+    }
+    el.innerHTML = r.data.map(function(row, i){
+      return '<div class="card">' +
+        '<div class="no">#' + (r.data.length - i) + ' · ' + timeAgo(row.created_at) + '</div>' +
+        '<div class="detail">' +
+        '🍽️ <strong>' + esc(row.food) + '</strong> · 📍 <strong>' + esc(row.location) + '</strong><br>' +
+        '📅 <strong>' + esc(row.date) + '</strong> · 🕐 <strong>' + esc(row.time||'未填') + '</strong>' +
+        '</div>' +
+        (row.message ? '<div class="msg">💬 ' + esc(row.message) + '</div>' : '') +
+        '</div>';
+    }).join('');
+  });
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+load();
+</script>
+</body>
+</html>
