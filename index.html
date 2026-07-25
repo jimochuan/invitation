@@ -475,7 +475,11 @@ body {
     <div class="card-subtitle">选一个你方便的时间</div>
     <div style="margin-bottom:10px;color:var(--text-light);font-size:13px;">最近几天：</div>
     <div class="date-buttons" id="dateOptions"></div>
-    <div class="time-group" style="margin-top:12px;">
+    <div class="options" id="dateCustom" style="display:none;margin-top:8px;">
+      <input type="text" class="time-input" id="customDate" placeholder="输入你方便的日期，如：下周五" style="width:100%;text-align:center;" oninput="handleCustomDate()">
+    </div>
+    <div class="option" style="display:inline-flex;margin-bottom:0;border-style:dashed;font-size:13px;padding:8px 16px;" onclick="toggleCustomDate()">➕ 自己写日期</div>
+    <div class="time-group" style="margin-top:14px;">
       <div class="time-row">
         <label>🕐 时间</label>
         <input type="time" class="time-input" id="timeInput" value="18:30">
@@ -551,8 +555,12 @@ var SUPABASE_KEY = 'sb_publishable_s3ZAvkd9G6xSJDhFhlFS-g_2DWMsI1O';
     const label = i<3 ? days[i] : `${dt.getMonth()+1}/${dt.getDate()} 周${'日一二三四五六'[dt.getDay()]}`;
     const btn = document.createElement('div');
     btn.className = 'date-btn';
-    btn.textContent = label;
     btn.dataset.value = label;
+    btn.innerHTML = label + '<span class="opt-del" style="font-size:10px;width:16px;height:16px;">✕</span>';
+    btn.querySelector('.opt-del').onclick = function(e){
+      e.stopPropagation();
+      btn.remove();
+    };
     btn.onclick = function(){ selectDate(this); };
     d.appendChild(btn);
   }
@@ -622,6 +630,29 @@ function selectDate(el){
   document.querySelectorAll('#dateOptions .date-btn').forEach(o=>o.classList.remove('selected'));
   el.classList.add('selected');
   selectedDate = el.dataset.value;
+  document.getElementById('customDate').value='';
+  document.getElementById('dateCustom').style.display='none';
+  checkTimeReady();
+}
+
+function toggleCustomDate(){
+  var box=document.getElementById('dateCustom');
+  if(box.style.display==='block'){
+    box.style.display='none';
+    document.getElementById('customDate').value='';
+    if(!document.querySelector('#dateOptions .date-btn.selected')){
+      selectedDate=''; checkTimeReady();
+    }
+  }else{
+    box.style.display='block';
+    document.querySelectorAll('#dateOptions .date-btn').forEach(function(o){o.classList.remove('selected');});
+    document.getElementById('customDate').focus();
+  }
+}
+
+function handleCustomDate(){
+  var v=document.getElementById('customDate').value.trim();
+  if(v){ selectedDate=v; } else { selectedDate=''; }
   checkTimeReady();
 }
 
