@@ -400,18 +400,6 @@ body {
     <div class="envelope-hint">👆 点击信封打开邀请</div>
   </div>
 
-  <!-- Screen 0.5: Secret code -->
-  <div class="card" id="card0">
-    <div class="card-title">🔐 我们的小暗号</div>
-    <div class="card-dear">
-      只有我们两个人知道的那个词<br>
-      输入它，才能打开这份邀请 ✨
-    </div>
-    <input type="text" class="time-input" id="codeInput" placeholder="输入暗号..." style="width:100%;text-align:center;font-size:18px;letter-spacing:4px;margin-bottom:24px;" oninput="checkCodeInput()">
-    <div id="codeError" style="color:#d47878;font-size:13px;margin-bottom:16px;display:none;">暗号不对哦，再想想 🤔</div>
-    <button class="btn btn-primary" id="btn0" onclick="verifyCode()" disabled>🔓 打开</button>
-  </div>
-
   <!-- Screen 1: Greeting -->
   <div class="card" id="card1">
     <div class="progress">
@@ -515,9 +503,12 @@ body {
     <div class="card-title">💬 你的回应</div>
     <div class="card-subtitle">说点什么吧，我很期待听到你的回答</div>
     <textarea class="response-textarea" id="responseText" placeholder="比如：好啊，那到时候见~ 😊"></textarea>
+    <div style="margin-bottom:16px;color:var(--text-light);font-size:13px;">💌 留一个只有我们知道的小暗号，方便我确认是你</div>
+    <input type="text" class="time-input" id="codeInput" placeholder="自己定义一个暗号，比如：月亮" style="width:100%;text-align:center;font-size:16px;letter-spacing:2px;margin-bottom:20px;" oninput="checkSubmitReady()">
+    <div id="codeError" style="color:#d47878;font-size:13px;margin-bottom:12px;display:none;">请写一个暗号哦~</div>
     <div class="btn-group">
       <button class="btn btn-secondary" onclick="goTo(3)">← 上一步</button>
-      <button class="btn btn-primary" onclick="submitResponse()">💗 回应邀请</button>
+      <button class="btn btn-primary" id="submitBtn" onclick="submitResponse()" disabled>💗 回应邀请</button>
     </div>
   </div>
 
@@ -540,8 +531,6 @@ body {
 var SUPABASE_URL = 'https://iqawreswebkaurbswkpf.supabase.co/rest/v1/responses';
 var SUPABASE_KEY = 'sb_publishable_s3ZAvkd9G6xSJDhFhlFS-g_2DWMsI1O';
 
-// ★★★ 设置暗号：改成只有你们俩知道的那个词 ★★★
-var INVITE_CODE = '我们的暗号';
 
 // Petals
 (()=>{
@@ -689,34 +678,16 @@ function openEnvelope(){
     document.getElementById('envelopeWrap').style.animation = 'fadeOut .5s ease forwards';
     setTimeout(()=>{
       document.getElementById('envelopeWrap').style.display = 'none';
-      goTo(0);
+      goTo(1);
     }, 500);
   }, 800);
   currentScreen = -1;
 }
 
-function checkCodeInput(){
-  var v = document.getElementById('codeInput').value;
-  document.getElementById('btn0').disabled = v.trim() === '';
-  document.getElementById('codeError').style.display = 'none';
-}
-
-function verifyCode(){
-  var v = document.getElementById('codeInput').value.trim();
-  if(v === INVITE_CODE){
-    goTo(1);
-  }else{
-    document.getElementById('codeError').style.display = 'block';
-    document.getElementById('codeInput').value = '';
-    document.getElementById('codeInput').focus();
-    document.getElementById('btn0').disabled = true;
-  }
-}
-
 function goTo(n){
   currentScreen = n;
   // Hide all cards
-  for(let i=0;i<=5;i++){
+  for(let i=1;i<=5;i++){
     const c = document.getElementById('card'+i);
     if(c) c.classList.remove('active');
   }
@@ -733,13 +704,26 @@ function goTo(n){
   }
 }
 
+function checkSubmitReady(){
+  var v = document.getElementById('codeInput').value.trim();
+  document.getElementById('submitBtn').disabled = v === '';
+  if(v){ document.getElementById('codeError').style.display = 'none'; }
+}
+
 function submitResponse(){
+  var myCode = document.getElementById('codeInput').value.trim();
+  if(!myCode){
+    document.getElementById('codeError').style.display = 'block';
+    document.getElementById('codeInput').focus();
+    return;
+  }
   const msg = document.getElementById('responseText').value || '好啊，那到时候见~ 😊';
   document.getElementById('finalMsg').innerHTML =
     `我们约好了：<br><br>
     <strong>🍽️ ${selectedFood}</strong> &nbsp;在 &nbsp;<strong>📍 ${selectedLoc}</strong><br>
     <strong>📅 ${selectedDate}</strong> &nbsp;🕐 <strong>${selectedTime}</strong><br><br>
-    <span style="font-size:14px;color:var(--text-light)">你说："${msg}"</span>`;
+    <span style="font-size:14px;color:var(--text-light)">你说："${msg}"</span><br><br>
+    <span style="font-size:14px;color:var(--rose-dark);font-weight:600;">💌 记得把暗号"${myCode}"告诉他哦</span>`;
   goTo(5);
   launchConfetti();
 
@@ -760,7 +744,7 @@ function submitResponse(){
       date: selectedDate,
       time: selectedTime,
       message: msg,
-      code: INVITE_CODE
+      code: myCode
     })
   }).then(function(r){
     if (r.ok) {
