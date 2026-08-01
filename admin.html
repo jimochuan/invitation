@@ -42,8 +42,7 @@ h1{text-align:center;color:#c97d93;margin:16px 0;letter-spacing:2px}
 var URL = 'https://iqawreswebkaurbswkpf.supabase.co/rest/v1/responses';
 var KEY = 'sb_publishable_s3ZAvkd9G6xSJDhFhlFS-g_2DWMsI1O';
 
-// ★★★ 设置暗号：改成和邀请页一样的暗号 ★★★
-var ADMIN_CODE = '我们的暗号';
+var ADMIN_CODE = ''; // filled from input on verify
 
 function timeAgo(d){
   var now = new Date(); var t = new Date(d); var diff = Math.floor((now - t) / 1000);
@@ -63,15 +62,12 @@ function delRow(id){
 
 function verifyAdmin(){
   var v = document.getElementById('adminCode').value.trim();
-  if(v === ADMIN_CODE){
-    document.getElementById('gate').style.display = 'none';
-    document.getElementById('content').style.display = 'block';
-    load();
-  }else{
-    document.getElementById('gateErr').style.display = 'block';
-    document.getElementById('adminCode').value = '';
-    document.getElementById('gateBtn').disabled = true;
-  }
+  if(!v) return;
+  ADMIN_CODE = v;
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+  document.getElementById('list').innerHTML = '<div class="loading">加载中...</div>';
+  load();
 }
 
 function load(){
@@ -81,7 +77,7 @@ function load(){
     headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY }
   }).then(function(r){ return r.json(); }).then(function(data){
     if (!data || data.length === 0) {
-      el.innerHTML = '<div class="empty">还没有收到回应 💌<br><br>把邀请链接发给对方吧~</div>';
+      el.innerHTML = '<div class="empty">没有找到暗号"<strong>' + esc(ADMIN_CODE) + '"的回应 💌<br><br>确认一下暗号对不对，或者等待对方回应~</div>';
       return;
     }
     el.innerHTML = data.map(function(row, i){
