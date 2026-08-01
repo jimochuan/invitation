@@ -400,6 +400,18 @@ body {
     <div class="envelope-hint">👆 点击信封打开邀请</div>
   </div>
 
+  <!-- Screen 0.5: Secret code -->
+  <div class="card" id="card0">
+    <div class="card-title">🔐 我们的小暗号</div>
+    <div class="card-dear">
+      只有我们两个人知道的那个词<br>
+      输入它，才能打开这份邀请 ✨
+    </div>
+    <input type="text" class="time-input" id="codeInput" placeholder="输入暗号..." style="width:100%;text-align:center;font-size:18px;letter-spacing:4px;margin-bottom:24px;" oninput="checkCodeInput()">
+    <div id="codeError" style="color:#d47878;font-size:13px;margin-bottom:16px;display:none;">暗号不对哦，再想想 🤔</div>
+    <button class="btn btn-primary" id="btn0" onclick="verifyCode()" disabled>🔓 打开</button>
+  </div>
+
   <!-- Screen 1: Greeting -->
   <div class="card" id="card1">
     <div class="progress">
@@ -527,6 +539,9 @@ body {
 // Supabase 配置
 var SUPABASE_URL = 'https://iqawreswebkaurbswkpf.supabase.co/rest/v1/responses';
 var SUPABASE_KEY = 'sb_publishable_s3ZAvkd9G6xSJDhFhlFS-g_2DWMsI1O';
+
+// ★★★ 设置暗号：改成只有你们俩知道的那个词 ★★★
+var INVITE_CODE = '我们的暗号';
 
 // Petals
 (()=>{
@@ -674,16 +689,34 @@ function openEnvelope(){
     document.getElementById('envelopeWrap').style.animation = 'fadeOut .5s ease forwards';
     setTimeout(()=>{
       document.getElementById('envelopeWrap').style.display = 'none';
-      goTo(1);
+      goTo(0);
     }, 500);
   }, 800);
   currentScreen = -1;
 }
 
+function checkCodeInput(){
+  var v = document.getElementById('codeInput').value;
+  document.getElementById('btn0').disabled = v.trim() === '';
+  document.getElementById('codeError').style.display = 'none';
+}
+
+function verifyCode(){
+  var v = document.getElementById('codeInput').value.trim();
+  if(v === INVITE_CODE){
+    goTo(1);
+  }else{
+    document.getElementById('codeError').style.display = 'block';
+    document.getElementById('codeInput').value = '';
+    document.getElementById('codeInput').focus();
+    document.getElementById('btn0').disabled = true;
+  }
+}
+
 function goTo(n){
   currentScreen = n;
   // Hide all cards
-  for(let i=1;i<=5;i++){
+  for(let i=0;i<=5;i++){
     const c = document.getElementById('card'+i);
     if(c) c.classList.remove('active');
   }
@@ -726,7 +759,8 @@ function submitResponse(){
       location: selectedLoc,
       date: selectedDate,
       time: selectedTime,
-      message: msg
+      message: msg,
+      code: INVITE_CODE
     })
   }).then(function(r){
     if (r.ok) {
