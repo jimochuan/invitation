@@ -748,11 +748,52 @@ function submitResponse(){
     if (r.ok) {
       ps.textContent = '✅ 回应已送达';
     } else {
-      ps.textContent = '📸 发送失败，请截图发给对方~';
+      // 显示具体错误，方便排查
+      r.json().then(function(err){
+        ps.textContent = '❌ 发送失败：' + (err.message || JSON.stringify(err)) + '，请截图发给对方~';
+      }).catch(function(){
+        ps.textContent = '❌ 发送失败 (HTTP ' + r.status + ')，请截图发给对方~';
+      });
     }
-  }).catch(function(){
-    ps.textContent = '📸 发送失败，请截图发给对方~';
+  }).catch(function(e){
+    // 网络失败：自动重试
+    retrySubmit(myCode, msg, ps, 3);
   });
+}
+
+function retrySubmit(myCode, msg, ps, attempts){
+  if(attempts <= 0){
+    ps.textContent = '❌ 网络不稳定，没发出去。请换个网络后重新提交一次~';
+    return;
+  }
+  ps.textContent = '⚠️ 网络波动，正在重试 (' + attempts + ')...';
+  setTimeout(function(){
+    fetch(SUPABASE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        food: selectedFood,
+        location: selectedLoc,
+        date: selectedDate,
+        time: selectedTime,
+        message: msg,
+        code: myCode
+      })
+    }).then(function(r){
+      if (r.ok) {
+        ps.textContent = '✅ 回应已送达';
+      } else {
+        ps.textContent = '❌ 发送失败，请截图发给对方~';
+      }
+    }).catch(function(){
+      retrySubmit(myCode, msg, ps, attempts - 1);
+    });
+  }, 1500);
 }
 
 function launchConfetti(){
