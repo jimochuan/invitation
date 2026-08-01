@@ -504,11 +504,11 @@ body {
     <div class="card-subtitle">说点什么吧，我很期待听到你的回答</div>
     <textarea class="response-textarea" id="responseText" placeholder="比如：好啊，那到时候见~ 😊"></textarea>
     <div style="margin-bottom:16px;color:var(--text-light);font-size:13px;">💌 留一个只有我们知道的小暗号，方便我确认是你</div>
-    <input type="text" class="time-input" id="codeInput" placeholder="自己定义一个暗号，比如：月亮" style="width:100%;text-align:center;font-size:16px;letter-spacing:2px;margin-bottom:20px;" oninput="checkSubmitReady()">
-    <div id="codeError" style="color:#d47878;font-size:13px;margin-bottom:12px;display:none;">请写一个暗号哦~</div>
+    <input type="text" class="time-input" id="codeInput" placeholder="自己定义一个暗号，比如：月亮" style="width:100%;text-align:center;font-size:16px;letter-spacing:2px;margin-bottom:20px;" oninput="clearCodeError()">
+    <div id="codeError" style="color:#d47878;font-size:13px;margin-bottom:12px;display:none;">💡 别忘了留一个暗号哦，这样他才能找到你的回应</div>
     <div class="btn-group">
       <button class="btn btn-secondary" onclick="goTo(3)">← 上一步</button>
-      <button class="btn btn-primary" id="submitBtn" onclick="submitResponse()" disabled>💗 回应邀请</button>
+      <button class="btn btn-primary" id="submitBtn" onclick="submitResponse()">💗 回应邀请</button>
     </div>
   </div>
 
@@ -704,10 +704,8 @@ function goTo(n){
   }
 }
 
-function checkSubmitReady(){
-  var v = document.getElementById('codeInput').value.trim();
-  document.getElementById('submitBtn').disabled = v === '';
-  if(v){ document.getElementById('codeError').style.display = 'none'; }
+function clearCodeError(){
+  document.getElementById('codeError').style.display = 'none';
 }
 
 function submitResponse(){
