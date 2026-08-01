@@ -24,12 +24,26 @@ h1{text-align:center;color:#c97d93;margin:16px 0;letter-spacing:2px}
 <body>
 <div class="wrap">
   <h1>💌 收到的回应</h1>
-  <div class="refresh"><button onclick="load()">🔄 刷新</button></div>
-  <div id="list"><div class="loading">加载中...</div></div>
+  <div id="gate">
+    <div style="text-align:center;padding:20px 0;">
+      <div style="font-size:15px;color:#7a6578;margin-bottom:16px;">🔐 输入暗号查看回应</div>
+      <input type="password" id="adminCode" placeholder="输入暗号..." style="padding:12px 16px;border:2px solid #e8d5d5;border-radius:50px;font-size:15px;width:80%;max-width:280px;outline:none;text-align:center;font-family:inherit;letter-spacing:3px;" oninput="document.getElementById('gateBtn').disabled=this.value.trim()===''">
+      <br><br>
+      <button id="gateBtn" onclick="verifyAdmin()" disabled style="padding:10px 32px;border:none;border-radius:50px;background:linear-gradient(135deg,#e8a0b4,#c97d93);color:#fff;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:2px;font-family:inherit;">🔓 查看</button>
+      <div id="gateErr" style="color:#d47878;font-size:13px;margin-top:12px;display:none;">暗号不对哦</div>
+    </div>
+  </div>
+  <div id="content" style="display:none;">
+    <div class="refresh"><button onclick="load()">🔄 刷新</button></div>
+    <div id="list"><div class="loading">加载中...</div></div>
+  </div>
 </div>
 <script>
 var URL = 'https://iqawreswebkaurbswkpf.supabase.co/rest/v1/responses';
 var KEY = 'sb_publishable_s3ZAvkd9G6xSJDhFhlFS-g_2DWMsI1O';
+
+// ★★★ 设置暗号：改成和邀请页一样的暗号 ★★★
+var ADMIN_CODE = '我们的暗号';
 
 function timeAgo(d){
   var now = new Date(); var t = new Date(d); var diff = Math.floor((now - t) / 1000);
@@ -47,10 +61,23 @@ function delRow(id){
   }).then(function(){ load(); });
 }
 
+function verifyAdmin(){
+  var v = document.getElementById('adminCode').value.trim();
+  if(v === ADMIN_CODE){
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+    load();
+  }else{
+    document.getElementById('gateErr').style.display = 'block';
+    document.getElementById('adminCode').value = '';
+    document.getElementById('gateBtn').disabled = true;
+  }
+}
+
 function load(){
   var el = document.getElementById('list');
   el.innerHTML = '<div class="loading">加载中...</div>';
-  fetch(URL + '?select=*&order=created_at.desc', {
+  fetch(URL + '?select=*&code=eq.' + encodeURIComponent(ADMIN_CODE) + '&order=created_at.desc', {
     headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY }
   }).then(function(r){ return r.json(); }).then(function(data){
     if (!data || data.length === 0) {
@@ -73,7 +100,7 @@ function load(){
   });
 }
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-load();
+// load only after code verification
 </script>
 </body>
 </html>
