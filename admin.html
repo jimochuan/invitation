@@ -81,14 +81,20 @@ function load(){
       return;
     }
     el.innerHTML = data.map(function(row, i){
+      var full = formatTime(row.created_at);
       return '<div class="card">' +
         '<button class="del-btn" onclick="delRow(' + row.id + ')" title="删除">🗑</button>' +
-        '<div class="no">#' + (data.length - i) + ' · ' + timeAgo(row.created_at) + '</div>' +
-        '<div class="detail">' +
+        '<div class="no">#' + (data.length - i) + ' · ' + timeAgo(row.created_at) + ' <span style="opacity:.6">(' + full + ')</span></div>' +
+        '<div class="detail" onclick="toggleDetail(' + row.id + ')" style="cursor:pointer;">' +
         '🍽️ <strong>' + esc(row.food) + '</strong> · 📍 <strong>' + esc(row.location) + '</strong><br>' +
         '📅 <strong>' + esc(row.date) + '</strong> · 🕐 <strong>' + esc(row.time||'未填') + '</strong>' +
         '</div>' +
-        (row.message ? '<div class="msg">💬 ' + esc(row.message) + '</div>' : '') +
+        '<div class="msg" id="detail-' + row.id + '" style="display:none;">' +
+        (row.message ? '<div>💬 ' + esc(row.message) + '</div>' : '') +
+        '<div style="margin-top:8px;color:#c97d93;font-size:13px;">💌 暗号：' + esc(row.code||'无') + '</div>' +
+        '<div style="margin-top:6px;color:#aaa;font-size:12px;">提交时间：' + full + '</div>' +
+        '</div>' +
+        '<div class="hint" style="text-align:center;font-size:12px;color:#c97d93;margin-top:6px;' + (row.message ? '' : '') + '">👇 点击详情展开/收起</div>' +
         '</div>';
     }).join('');
   }).catch(function(e){
@@ -96,6 +102,17 @@ function load(){
   });
 }
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function toggleDetail(id){
+  var d = document.getElementById('detail-' + id);
+  if(d) d.style.display = d.style.display === 'none' ? 'block' : 'none';
+}
+
+function formatTime(d){
+  var t = new Date(d);
+  function p(n){ return (n<10?'0':'')+n; }
+  return (t.getFullYear()) + '-' + p(t.getMonth()+1) + '-' + p(t.getDate()) + ' ' + p(t.getHours()) + ':' + p(t.getMinutes());
+}
 // load only after code verification
 </script>
 </body>
